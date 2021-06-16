@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<config version="8.1.0" urldb="paloaltonetworks">
+<config version="9.1.0" urldb="paloaltonetworks">
   <mgt-config>
     <users>
       <entry name="admin">
@@ -11,7 +11,7 @@
         </permissions>
       </entry>
       <entry name="azureuser">
-        <phash>$1$wedsdxnf$MSkIANHgoxe6jQkYXxxSr.</phash>
+        <phash>$1$qhxakxru$b.rJuDrsdwgP2yoZCYJKn.</phash>
         <permissions>
           <role-based>
             <superuser>yes</superuser>
@@ -19,6 +19,10 @@
         </permissions>
       </entry>
     </users>
+    <password-complexity>
+      <enabled>yes</enabled>
+      <minimum-length>8</minimum-length>
+    </password-complexity>
   </mgt-config>
   <shared>
     <application/>
@@ -83,45 +87,31 @@
         <interface>
           <ethernet>
             <entry name="ethernet1/1">
+              <comment>untrust</comment>
               <layer3>
-                <ipv6>
-                  <neighbor-discovery>
-                    <router-advertisement>
-                      <enable>no</enable>
-                    </router-advertisement>
-                  </neighbor-discovery>
-                </ipv6>
                 <ndp-proxy>
                   <enabled>no</enabled>
                 </ndp-proxy>
-                <ip>
-                  <entry name="10.1.0.4/24"/>
-                </ip>
                 <lldp>
                   <enable>no</enable>
                 </lldp>
-                <interface-management-profile>mgmt-profile</interface-management-profile>
+                <ip>
+                  <entry name="untrust"/>
+                </ip>
               </layer3>
             </entry>
             <entry name="ethernet1/2">
               <layer3>
-                <ipv6>
-                  <neighbor-discovery>
-                    <router-advertisement>
-                      <enable>no</enable>
-                    </router-advertisement>
-                  </neighbor-discovery>
-                </ipv6>
                 <ndp-proxy>
                   <enabled>no</enabled>
                 </ndp-proxy>
                 <ip>
-                  <entry name="10.1.1.4/24"/>
+                  <entry name="trust"/>
                 </ip>
                 <lldp>
                   <enable>no</enable>
                 </lldp>
-                <interface-management-profile>mgmt-profile</interface-management-profile>
+                <interface-management-profile>mgmt</interface-management-profile>
               </layer3>
             </entry>
           </ethernet>
@@ -129,9 +119,8 @@
             <units>
               <entry name="tunnel.1">
                 <ip>
-                  <entry name="192.168.2.1/32"/>
+                  <entry name="192.168.2.1/24"/>
                 </ip>
-                <interface-management-profile>mgmt-profile</interface-management-profile>
               </entry>
             </units>
           </tunnel>
@@ -145,7 +134,12 @@
             </entry>
           </monitor-profile>
           <interface-management-profile>
-            <entry name="mgmt-profile">
+            <entry name="mgmt">
+              <permitted-ip>
+                <entry name="10.1.0.0/16"/>
+              </permitted-ip>
+              <https>yes</https>
+              <ssh>yes</ssh>
               <ping>yes</ping>
             </entry>
           </interface-management-profile>
@@ -196,7 +190,7 @@
                   <hours>8</hours>
                 </lifetime>
               </entry>
-              <entry name="Azure-Profile">
+              <entry name="azure">
                 <hash>
                   <member>sha256</member>
                 </hash>
@@ -204,7 +198,7 @@
                   <member>group2</member>
                 </dh-group>
                 <encryption>
-                  <member>aes-128-cbc</member>
+                  <member>3des</member>
                 </encryption>
                 <lifetime>
                   <seconds>28800</seconds>
@@ -255,7 +249,7 @@
                   <hours>1</hours>
                 </lifetime>
               </entry>
-              <entry name="Azure-IPSEC-Profile">
+              <entry name="azure">
                 <esp>
                   <authentication>
                     <member>sha1</member>
@@ -282,7 +276,7 @@
             </global-protect-app-crypto-profiles>
           </crypto-profiles>
           <gateway>
-            <entry name="IKE-Tunnel">
+            <entry name="vpn">
               <authentication>
                 <pre-shared-key>
                   <key>-AQ==qzsUOQ+Kn2V6I/5KEoRKFkTW4Ec=m2IHq75MS2hvtRUE7b7bGw==</key>
@@ -302,7 +296,7 @@
                 <version>ikev2</version>
               </protocol>
               <local-address>
-                <ip>10.1.0.4/24</ip>
+                <ip>untrust</ip>
                 <interface>ethernet1/1</interface>
               </local-address>
               <protocol-common>
@@ -314,7 +308,7 @@
                 </fragmentation>
               </protocol-common>
               <peer-address>
-                <ip>Azure-VNGpubip</ip>
+                <ip>40.80.146.158</ip>
               </peer-address>
             </entry>
           </gateway>
@@ -322,37 +316,41 @@
         <qos>
           <profile>
             <entry name="default">
-              <class>
-                <entry name="class1">
-                  <priority>real-time</priority>
-                </entry>
-                <entry name="class2">
-                  <priority>high</priority>
-                </entry>
-                <entry name="class3">
-                  <priority>high</priority>
-                </entry>
-                <entry name="class4">
-                  <priority>medium</priority>
-                </entry>
-                <entry name="class5">
-                  <priority>medium</priority>
-                </entry>
-                <entry name="class6">
-                  <priority>low</priority>
-                </entry>
-                <entry name="class7">
-                  <priority>low</priority>
-                </entry>
-                <entry name="class8">
-                  <priority>low</priority>
-                </entry>
-              </class>
+              <class-bandwidth-type>
+                <mbps>
+                  <class>
+                    <entry name="class1">
+                      <priority>real-time</priority>
+                    </entry>
+                    <entry name="class2">
+                      <priority>high</priority>
+                    </entry>
+                    <entry name="class3">
+                      <priority>high</priority>
+                    </entry>
+                    <entry name="class4">
+                      <priority>medium</priority>
+                    </entry>
+                    <entry name="class5">
+                      <priority>medium</priority>
+                    </entry>
+                    <entry name="class6">
+                      <priority>low</priority>
+                    </entry>
+                    <entry name="class7">
+                      <priority>low</priority>
+                    </entry>
+                    <entry name="class8">
+                      <priority>low</priority>
+                    </entry>
+                  </class>
+                </mbps>
+              </class-bandwidth-type>
             </entry>
           </profile>
         </qos>
         <virtual-router>
-          <entry name="Untrust">
+          <entry name="untrust">
             <ecmp>
               <algorithm>
                 <ip-modulo/>
@@ -364,82 +362,8 @@
                   <graceful-restart>
                     <enable>yes</enable>
                   </graceful-restart>
-                  <aggregate>
-                    <aggregate-med>no</aggregate-med>
-                  </aggregate>
-                  <med>
-                    <deterministic-med-comparison>no</deterministic-med-comparison>
-                  </med>
                 </routing-options>
-                <enable>yes</enable>
-                <peer-group>
-                  <entry name="BGP">
-                    <type>
-                      <ebgp>
-                        <remove-private-as>no</remove-private-as>
-                        <import-nexthop>original</import-nexthop>
-                        <export-nexthop>use-self</export-nexthop>
-                      </ebgp>
-                    </type>
-                    <peer>
-                      <entry name="Azure-BGP">
-                        <connection-options>
-                          <incoming-bgp-connection>
-                            <remote-port>0</remote-port>
-                            <allow>yes</allow>
-                          </incoming-bgp-connection>
-                          <outgoing-bgp-connection>
-                            <local-port>0</local-port>
-                            <allow>yes</allow>
-                          </outgoing-bgp-connection>
-                          <multihop>2</multihop>
-                          <keep-alive-interval>30</keep-alive-interval>
-                          <open-delay-time>0</open-delay-time>
-                          <hold-time>90</hold-time>
-                          <idle-hold-time>15</idle-hold-time>
-                          <min-route-adv-interval>30</min-route-adv-interval>
-                        </connection-options>
-                        <subsequent-address-family-identifier>
-                          <unicast>yes</unicast>
-                          <multicast>no</multicast>
-                        </subsequent-address-family-identifier>
-                        <local-address>
-                          <ip>192.168.2.1/32</ip>
-                          <interface>tunnel.1</interface>
-                        </local-address>
-                        <peer-address>
-                          <ip>10.0.0.254</ip>
-                        </peer-address>
-                        <bfd>
-                          <profile>Inherit-vr-global-setting</profile>
-                        </bfd>
-                        <max-prefixes>5000</max-prefixes>
-                        <enable>yes</enable>
-                        <peer-as>65001</peer-as>
-                        <enable-mp-bgp>no</enable-mp-bgp>
-                        <address-family-identifier>ipv4</address-family-identifier>
-                        <enable-sender-side-loop-detection>yes</enable-sender-side-loop-detection>
-                        <reflector-client>non-client</reflector-client>
-                        <peering-type>unspecified</peering-type>
-                      </entry>
-                    </peer>
-                    <aggregated-confed-as-path>no</aggregated-confed-as-path>
-                    <soft-reset-with-stored-info>no</soft-reset-with-stored-info>
-                    <enable>yes</enable>
-                  </entry>
-                </peer-group>
-                <router-id>192.168.2.1</router-id>
-                <local-as>65002</local-as>
-                <install-route>yes</install-route>
-                <enforce-first-as>no</enforce-first-as>
-                <redist-rules>
-                  <entry name="static">
-                    <address-family-identifier>ipv4</address-family-identifier>
-                    <route-table>unicast</route-table>
-                    <enable>yes</enable>
-                    <set-origin>incomplete</set-origin>
-                  </entry>
-                </redist-rules>
+                <enable>no</enable>
               </bgp>
               <rip>
                 <enable>no</enable>
@@ -450,28 +374,11 @@
               <ospfv3>
                 <enable>no</enable>
               </ospfv3>
-              <redist-profile>
-                <entry name="static">
-                  <filter>
-                    <type>
-                      <member>static</member>
-                    </type>
-                  </filter>
-                  <priority>1</priority>
-                  <action>
-                    <redist/>
-                  </action>
-                </entry>
-              </redist-profile>
             </protocol>
-            <interface>
-              <member>ethernet1/1</member>
-              <member>tunnel.1</member>
-            </interface>
             <routing-table>
               <ip>
                 <static-route>
-                  <entry name="to-azure-vng">
+                  <entry name="default">
                     <nexthop>
                       <ip-address>10.1.0.1</ip-address>
                     </nexthop>
@@ -485,42 +392,23 @@
                     </path-monitor>
                     <interface>ethernet1/1</interface>
                     <metric>10</metric>
-                    <destination>Azure-VNGpubip/32</destination>
+                    <destination>0.0.0.0/0</destination>
                     <route-table>
                       <unicast/>
                     </route-table>
                   </entry>
-                  <entry name="to-inside">
-                    <nexthop>
-                      <next-vr>Trust</next-vr>
-                    </nexthop>
-                    <bfd>
-                      <profile>None</profile>
-                    </bfd>
+                  <entry name="azure">
                     <path-monitor>
                       <enable>no</enable>
                       <failure-condition>any</failure-condition>
                       <hold-time>2</hold-time>
                     </path-monitor>
-                    <interface>ethernet1/1</interface>
-                    <metric>10</metric>
-                    <destination>10.1.10.0/24</destination>
-                    <route-table>
-                      <unicast/>
-                    </route-table>
-                  </entry>
-                  <entry name="to-azure-bgp">
                     <bfd>
                       <profile>None</profile>
                     </bfd>
-                    <path-monitor>
-                      <enable>no</enable>
-                      <failure-condition>any</failure-condition>
-                      <hold-time>2</hold-time>
-                    </path-monitor>
                     <interface>tunnel.1</interface>
                     <metric>10</metric>
-                    <destination>10.0.0.254/32</destination>
+                    <destination>10.0.0.0/16</destination>
                     <route-table>
                       <unicast/>
                     </route-table>
@@ -528,8 +416,12 @@
                 </static-route>
               </ip>
             </routing-table>
+            <interface>
+              <member>ethernet1/1</member>
+              <member>tunnel.1</member>
+            </interface>
           </entry>
-          <entry name="Trust">
+          <entry name="trust">
             <ecmp>
               <algorithm>
                 <ip-modulo/>
@@ -557,59 +449,21 @@
             <routing-table>
               <ip>
                 <static-route>
-                  <entry name="to-onprem-subnet">
-                    <nexthop>
-                      <ip-address>10.1.1.1</ip-address>
-                    </nexthop>
-                    <bfd>
-                      <profile>None</profile>
-                    </bfd>
-                    <path-monitor>
-                      <enable>no</enable>
-                      <failure-condition>any</failure-condition>
-                      <hold-time>2</hold-time>
-                    </path-monitor>
-                    <interface>ethernet1/2</interface>
-                    <metric>10</metric>
-                    <destination>10.1.10.0/24</destination>
-                    <route-table>
-                      <unicast/>
-                    </route-table>
-                  </entry>
-                  <entry name="to-azure">
+                  <entry name="default2">
                     <path-monitor>
                       <enable>no</enable>
                       <failure-condition>any</failure-condition>
                       <hold-time>2</hold-time>
                     </path-monitor>
                     <nexthop>
-                      <next-vr>Untrust</next-vr>
+                      <next-vr>untrust</next-vr>
                     </nexthop>
                     <bfd>
                       <profile>None</profile>
                     </bfd>
                     <interface>ethernet1/2</interface>
                     <metric>10</metric>
-                    <destination>10.0.0.0/16</destination>
-                    <route-table>
-                      <unicast/>
-                    </route-table>
-                  </entry>
-                  <entry name="to-vti">
-                    <path-monitor>
-                      <enable>no</enable>
-                      <failure-condition>any</failure-condition>
-                      <hold-time>2</hold-time>
-                    </path-monitor>
-                    <nexthop>
-                      <next-vr>Untrust</next-vr>
-                    </nexthop>
-                    <bfd>
-                      <profile>None</profile>
-                    </bfd>
-                    <interface>ethernet1/2</interface>
-                    <metric>10</metric>
-                    <destination>192.168.2.1/32</destination>
+                    <destination>0.0.0.0/0</destination>
                     <route-table>
                       <unicast/>
                     </route-table>
@@ -624,12 +478,11 @@
         </virtual-router>
         <tunnel>
           <ipsec>
-            <entry name="Azure-tunnel">
+            <entry name="azure">
               <auto-key>
                 <ike-gateway>
-                  <entry name="IKE-Tunnel"/>
+                  <entry name="vpn"/>
                 </ike-gateway>
-                <ipsec-crypto-profile>Azure-IPSEC-Profile</ipsec-crypto-profile>
               </auto-key>
               <tunnel-monitor>
                 <enable>no</enable>
@@ -694,7 +547,7 @@
           <application/>
           <application-group/>
           <zone>
-            <entry name="Untrust">
+            <entry name="untrust">
               <network>
                 <layer3>
                   <member>ethernet1/1</member>
@@ -702,7 +555,7 @@
                 </layer3>
               </network>
             </entry>
-            <entry name="Trust">
+            <entry name="trust">
               <network>
                 <layer3>
                   <member>ethernet1/2</member>
@@ -713,72 +566,7 @@
           <service/>
           <service-group/>
           <schedule/>
-          <rulebase>
-            <security>
-              <rules>
-                <entry name="VPN-IN">
-                  <to>
-                    <member>Trust</member>
-                  </to>
-                  <from>
-                    <member>Untrust</member>
-                  </from>
-                  <source>
-                    <member>10.0.0.0/16</member>
-                  </source>
-                  <destination>
-                    <member>any</member>
-                  </destination>
-                  <source-user>
-                    <member>any</member>
-                  </source-user>
-                  <category>
-                    <member>any</member>
-                  </category>
-                  <application>
-                    <member>any</member>
-                  </application>
-                  <service>
-                    <member>application-default</member>
-                  </service>
-                  <hip-profiles>
-                    <member>any</member>
-                  </hip-profiles>
-                  <action>allow</action>
-                </entry>
-                <entry name="VPN-OUT">
-                  <to>
-                    <member>Untrust</member>
-                  </to>
-                  <from>
-                    <member>Trust</member>
-                  </from>
-                  <source>
-                    <member>any</member>
-                  </source>
-                  <destination>
-                    <member>any</member>
-                  </destination>
-                  <source-user>
-                    <member>any</member>
-                  </source-user>
-                  <category>
-                    <member>any</member>
-                  </category>
-                  <application>
-                    <member>any</member>
-                  </application>
-                  <service>
-                    <member>application-default</member>
-                  </service>
-                  <hip-profiles>
-                    <member>any</member>
-                  </hip-profiles>
-                  <action>allow</action>
-                </entry>
-              </rules>
-            </security>
-          </rulebase>
+          <rulebase/>
           <import>
             <network>
               <interface>
@@ -788,6 +576,14 @@
               </interface>
             </network>
           </import>
+          <address>
+            <entry name="untrust">
+              <ip-netmask>10.1.0.4/24</ip-netmask>
+            </entry>
+            <entry name="trust">
+              <ip-netmask>10.1.1.4/24</ip-netmask>
+            </entry>
+          </address>
         </entry>
       </vsys>
     </entry>
